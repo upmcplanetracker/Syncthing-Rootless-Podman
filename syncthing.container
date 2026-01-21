@@ -1,0 +1,37 @@
+[Unit]
+Description=Syncthing Service
+After=network-online.target
+
+[Container]
+Image=docker.io/syncthing/syncthing:latest
+ContainerName=syncthing
+AutoUpdate=registry
+
+# User Namespace: Maps container user to host user
+# This is crucial for Syncthing to have correct file permissions
+UserNS=keep-id
+
+# Networking: Using host mode for easy discovery on the local network
+Network=host
+
+# Storage
+# 1. Configuration data
+Volume=%h/syncthing/config:/var/syncthing/config:Z
+# 2. Main home directory access
+Volume=%h:/home/user
+# 3. External drive / Backup mount (Adjust this path to your actual mount)
+Volume=/mnt/sda1:/mnt/sda1:Z
+
+# Environment
+Environment=TZ=America/New_York
+
+# Maintenance & Logging
+LogDriver=k8s-file
+PodmanArgs=--log-opt=max-size=10m --log-opt=max-file=3
+
+[Service]
+Restart=unless-stopped
+Type=notify
+
+[Install]
+WantedBy=default.target
